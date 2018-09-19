@@ -22,7 +22,7 @@ let self;
 let buffer = [];
 let startBacks = [];
 let startFronts = [];
-let pairsOnLevel = 2;
+let pairsOnLevel = 4;
 let onNextLevel = 2;
 let completePairs = 0;
 const showCardsOnStart = 2000;
@@ -71,8 +71,8 @@ function create ()
 
     
 
-    buildLevel(this, pairsOnLevel);
-
+    //buildLevel(this, pairsOnLevel += onNextLevel);
+    buildLevel(this, 4);
     
     
     
@@ -90,8 +90,8 @@ const buildLevel = (self, pairsNum) => {
         let onX = coords[index].x+333;
         let onY = coords[index].y+80;
         
-        let back = self.add.image(onX, onY, 'back').setInteractive();
-        let front = self.add.image(onX, onY, item);
+        let back = self.add.image(Phaser.Math.Between(-2500, 2500), Phaser.Math.Between(-2500, 2500), 'back').setInteractive();
+        let front = self.add.image(Phaser.Math.Between(-2500, 2500), Phaser.Math.Between(-2500, 2500), item);
         
         front.scaleX = 0.0;
         front.scaleY = 1.02;
@@ -105,13 +105,24 @@ const buildLevel = (self, pairsNum) => {
         front.dataType = 'front';
         back.dataType = 'back';
 
+        front.alpha = 0;
+        back.alpha = 0;
+
         startBacks.push(back);
         startFronts.push(front);
         
         self.allcards.add(back);
         self.allcards.add(front);
-        
 
+        self.tweens.add({
+            targets: [back, front],
+            x: onX,
+            y: onY,
+            alpha:1,
+            duration:1000
+        });
+        
+        
 
         back.on('pointerdown', pointer => {
             let opencard = self.tweens.createTimeline();
@@ -139,7 +150,9 @@ const buildLevel = (self, pairsNum) => {
 
         
     });
-    startShow(self);
+    
+    setTimeout( () => { startShow(self) }, 1600);
+    
 }
 
 
@@ -187,7 +200,62 @@ const clearLevel = (self) => {
         self.allcards.children.entries.map( item => item.destroy() );
         i++;
     }
-    setTimeout( () => { buildLevel(self, pairsOnLevel) }, 2000 );
+    
+    //setTimeout( () => { buildLevel(self, pairsOnLevel += onNextLevel) }, 2000 );
+}
+
+
+
+const endMoves = (self) => {
+    console.log('end moves');
+    setTimeout( () => {
+        let endtext = self.add.text(400, 310, "Amazing!", { fontFamily: "Arial Black", fontSize: 174, color: "#c51b7d" });
+        endtext.setStroke('#de77ae', 16);
+        endtext.setShadow(2, 2, "#333333", 2, true, true);
+        endtext.alpha = 0;
+
+        
+
+        self.tweens.add({
+            targets: endtext,
+            alpha:1,
+            duration:900
+        });
+        self.allcards.children.entries.map(item => {
+            self.tweens.add({
+                targets: item,
+                props: {
+                    x: { value: Phaser.Math.Between(-2500, 2500), duration: 1500, ease: 'Power2' },
+                    y: { value: Phaser.Math.Between(-2500, 2500), duration: 1500, ease: 'Bounce.easeOut' }
+                },
+                delay: 50
+            });
+        });
+        setTimeout( () => {
+            self.tweens.add({
+                targets: [ self.allcards.children.entries ],
+                alpha:0,
+                duration:900
+            });
+        }, 750);
+
+        setTimeout( () => {
+            clearLevel(self);
+            self.tweens.add({
+                targets: endtext,
+                alpha:0,
+                duration:900
+            });
+        }, 1200);
+
+        setTimeout( () => {
+            endtext.destroy();
+            //buildLevel(self, pairsOnLevel += onNextLevel);
+            buildLevel(self, 4);
+        },2200);
+        
+    }, 520);
+    
 }
 
 const checkBuffer = (self) => {
@@ -197,7 +265,7 @@ const checkBuffer = (self) => {
         if(completePairs == pairsOnLevel){
             completePairs = 0;
             console.log('level end');
-            setTimeout( () => { clearLevel(self) }, 2000);
+            endMoves(self);
         }
     }
     
