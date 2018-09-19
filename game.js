@@ -209,7 +209,7 @@ const clearLevel = (self) => {
 const endMoves = (self) => {
     console.log('end moves');
     setTimeout( () => {
-        let endtext = self.add.text(400, 310, "Amazing!", { fontFamily: "Arial Black", fontSize: 174, color: "#c51b7d" });
+        let endtext = self.add.text(400, 310, "Amazing!", { fontFamily: "Coiny", fontSize: 174, color: "#c51b7d" });
         endtext.setStroke('#de77ae', 16);
         endtext.setShadow(2, 2, "#333333", 2, true, true);
         endtext.alpha = 0;
