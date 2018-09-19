@@ -103,6 +103,7 @@ const buildLevel = (levelData) => {
         }
     });
 
+    console.log('start level')
     action = false; 
     setTimeout(()=>{ 
         [...document.getElementsByClassName(`card flipped`)].forEach(item=>{
@@ -117,7 +118,7 @@ const checkLevel = () => {
         if(document.getElementsByClassName('card').length == document.getElementsByClassName('card flipped').length){
             startlevel = startlevel+addToLevel;
             if(startlevel < endlevel){
-                    
+                    console.log('end level')
                     action = false;
                     setTimeout(()=>{ 
                         game.innerHTML = '';
