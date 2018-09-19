@@ -4,6 +4,13 @@ var config = {
     height: 600,
     parent: 'game',
     backgroundColor: '#eaefec',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+            //gravity: { y: 200 }
+        }
+    },
     scene: {
         preload: preload,
         create: create
@@ -15,7 +22,35 @@ let self;
 let buffer = [];
 let startBacks = [];
 let startFronts = [];
+let pairsOnLevel = 2;
+let onNextLevel = 2;
+let completePairs = 0;
 const showCardsOnStart = 2000;
+const coords = [
+    {x: 180, y: 300},
+    {x: 470, y: 300},
+    {x: 760, y: 300},
+    {x: 1050, y: 300},
+    {x: 180, y: 710},
+    {x: 470, y: 710},
+    {x: 760, y: 710},
+    {x: 1050, y: 710},
+];
+
+    const shuffleArray = arr => arr
+    .map(a => [Math.random(), a])
+    .sort((a, b) => a[0] - b[0])
+    .map(a => a[1]);
+
+    const randomDuplicates = (array, how) => 
+    shuffleArray(array).slice(0, how).reduce(
+        (res, current, index, array) => {
+            return shuffleArray(res.concat([current, current]));
+        }, 
+    []);
+
+    const all = ['arcane', 'rager', 'mojo', 'wyrm'];
+    const staticCards = ['arcane','rager','rager','arcane'];
 
 function preload ()
 {
@@ -36,44 +71,27 @@ function create ()
 
     
 
-    const shuffleArray = arr => arr
-    .map(a => [Math.random(), a])
-    .sort((a, b) => a[0] - b[0])
-    .map(a => a[1]);
+    buildLevel(this, pairsOnLevel);
 
-    const randomDuplicates = (array, how) => 
-    shuffleArray(array).slice(0, how).reduce(
-        (res, current, index, array) => {
-            return shuffleArray(res.concat([current, current]));
-        }, 
-    []);
-
-    const all = ['arcane', 'rager', 'mojo', 'wyrm'];
-    const randomCards = randomDuplicates(all,4);
-    const staticCards = ['arcane','rager','rager','arcane'];
-
-   
     
+    
+    
+    
+}
 
-    const coords = [
-        {x: 180, y: 300},
-        {x: 470, y: 300},
-        {x: 760, y: 300},
-        {x: 1050, y: 300},
-        {x: 180, y: 710},
-        {x: 470, y: 710},
-        {x: 760, y: 710},
-        {x: 1050, y: 710},
-    ];
+
+
+const buildLevel = (self, pairsNum) => {
+    
+    self.allcards = self.add.group(); 
+    const randomCards = randomDuplicates(all, pairsNum);
     
     randomCards.map( (item, index) => {
-        //let onX = 180+(index*290);
-        //let onY = 300;
-        let onX = coords[index].x;
-        let onY = coords[index].y;
+        let onX = coords[index].x+333;
+        let onY = coords[index].y+80;
         
-        let back = this.add.image(onX, onY, 'back').setInteractive();
-        let front = this.add.image(onX, onY, item);
+        let back = self.add.image(onX, onY, 'back').setInteractive();
+        let front = self.add.image(onX, onY, item);
         
         front.scaleX = 0.0;
         front.scaleY = 1.02;
@@ -90,42 +108,40 @@ function create ()
         startBacks.push(back);
         startFronts.push(front);
         
+        self.allcards.add(back);
+        self.allcards.add(front);
         
+
+
+        back.on('pointerdown', pointer => {
+            let opencard = self.tweens.createTimeline();
         
+            opencard.add({
+                targets: back,
+                scaleX: 0,
+                scaleY: 1.02,
+                duration: 250,
+            });
 
-
-        back.on('pointerdown', function (pointer) {
-        let opencard = this.tweens.createTimeline();
-    
-        opencard.add({
-            targets: back,
-            scaleX: 0,
-            scaleY: 1.02,
-            duration: 250,
-        });
-
-        opencard.add({
-            targets: front,
-            scaleX: 1,
-            scaleY: 1,
-            duration: 250,
-        });
-            opencard.play();
-            buffer.push(back.dataCard);
-            back.dataOpen = true;
-            front.dataOpen = true;
-            checkBuffer(self);
+            opencard.add({
+                targets: front,
+                scaleX: 1,
+                scaleY: 1,
+                duration: 250,
+            });
+                opencard.play();
+                buffer.push(back.dataCard);
+                back.dataOpen = true;
+                front.dataOpen = true;
+                checkBuffer(self);
             
         }, this);
 
         
-    } );
-
-    startShow(this);
-    
-    
-    
+    });
+    startShow(self);
 }
+
 
 
 const startShow = (self) => {
@@ -159,12 +175,30 @@ const startShow = (self) => {
         duration: 250,
     });
     startFlipOut.play();
+
+    startBacks = [];
+    startFronts = [];
+}
+
+
+const clearLevel = (self) => {
+    let i = 0;
+    while (i <= pairsOnLevel*2) {
+        self.allcards.children.entries.map( item => item.destroy() );
+        i++;
+    }
+    setTimeout( () => { buildLevel(self, pairsOnLevel) }, 2000 );
 }
 
 const checkBuffer = (self) => {
     if(buffer.length == 2 && buffer[0] == buffer[1]){
-        console.log('match pair');
+        completePairs += 1;
         buffer = [];
+        if(completePairs == pairsOnLevel){
+            completePairs = 0;
+            console.log('level end');
+            setTimeout( () => { clearLevel(self) }, 2000);
+        }
     }
     
     if(buffer.length == 2 && buffer[0] != buffer[1]){

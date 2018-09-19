@@ -98,7 +98,7 @@ const buildLevel = (levelData) => {
     });
 
     [...document.getElementsByClassName('card')].forEach(anchor=>{
-        anchor.onclick = (anchor) => {
+        anchor.onmousedown = (anchor) => {
             clickOnCell(anchor);
         }
     });
