@@ -13,6 +13,9 @@ var config = {
 let game = new Phaser.Game(config);
 let self;
 let buffer = [];
+let startBacks = [];
+let startFronts = [];
+const showCardsOnStart = 2000;
 
 function preload ()
 {
@@ -50,9 +53,7 @@ function create ()
     const staticCards = ['arcane','rager','rager','arcane'];
 
    
-    let startBacks = [];
-    let startFronts = [];
-    const showCardsOnStart = 2000;
+    
 
     const coords = [
         {x: 180, y: 300},
@@ -120,8 +121,15 @@ function create ()
         
     } );
 
+    startShow(this);
     
-    let startFlipIn = this.tweens.createTimeline();
+    
+    
+}
+
+
+const startShow = (self) => {
+    let startFlipIn = self.tweens.createTimeline();
     startFlipIn.add({
         targets: startBacks,
         scaleX: 0,
@@ -136,7 +144,7 @@ function create ()
     });
     startFlipIn.play();
 
-    let startFlipOut = this.tweens.createTimeline();
+    let startFlipOut = self.tweens.createTimeline();
     startFlipOut.add({
         targets: startFronts,
         scaleX: 0,
@@ -151,11 +159,7 @@ function create ()
         duration: 250,
     });
     startFlipOut.play();
-    
-    
 }
-
-
 
 const checkBuffer = (self) => {
     if(buffer.length == 2 && buffer[0] == buffer[1]){
