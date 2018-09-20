@@ -1,7 +1,7 @@
 var config = {
     type: Phaser.AUTO,
-    width: 1000,
-    height: 600,
+    width: window.innerWidth,
+    height: window.innerHeight,
     parent: 'game',
     backgroundColor: '#eaefec',
     physics: {
@@ -22,19 +22,30 @@ let self;
 let buffer = [];
 let startBacks = [];
 let startFronts = [];
-let pairsOnLevel = 4;
+let pairsOnLevel = 8;
 let onNextLevel = 2;
 let completePairs = 0;
 const showCardsOnStart = 2000;
 const coords = [
-    {x: 180, y: 300},
-    {x: 470, y: 300},
-    {x: 760, y: 300},
-    {x: 1050, y: 300},
-    {x: 180, y: 710},
-    {x: 470, y: 710},
-    {x: 760, y: 710},
-    {x: 1050, y: 710},
+    {x: 110, y: 110},
+    {x: 350, y: 110},
+    {x: 590, y: 110},
+    {x: 830, y: 110},
+    
+    {x: 110, y: 350},
+    {x: 350, y: 350},
+    {x: 590, y: 350},
+    {x: 830, y: 350},
+
+    {x: 110, y: 590},
+    {x: 350, y: 590},
+    {x: 590, y: 590},
+    {x: 830, y: 590},
+    
+    {x: 110, y: 830},
+    {x: 350, y: 830},
+    {x: 590, y: 830},
+    {x: 830, y: 830},
 ];
 
     const shuffleArray = arr => arr
@@ -49,30 +60,58 @@ const coords = [
         }, 
     []);
 
-    const all = ['arcane', 'rager', 'mojo', 'wyrm'];
-    const staticCards = ['arcane','rager','rager','arcane'];
+    //const all = ['arcane', 'rager', 'mojo', 'wyrm'];
+    //const staticCards = ['arcane','rager','rager','arcane'];
+    const all = ['a','b','c','d','e','f','g','h'];
 
 function preload ()
 {
+    /*
     this.load.image('back', 'phaser/hs_back.png');
     this.load.image('arcane', 'phaser/hs_front.png');
     this.load.image('rager', 'phaser/hs_front2.png');
     this.load.image('mojo', 'phaser/hs_front3.png');
     this.load.image('wyrm', 'phaser/hs_front4.png');
+    */
+   this.load.image('test', 'phaser/testbg.png');
+   this.load.image('back', 'phaser/cards/backface.png');
+   this.load.image('a', 'phaser/cards/items/a.png');
+   this.load.image('b', 'phaser/cards/items/b.png');
+   this.load.image('c', 'phaser/cards/items/c.png');
+   this.load.image('d', 'phaser/cards/items/d.png');
+   this.load.image('e', 'phaser/cards/items/e.png');
+   this.load.image('f', 'phaser/cards/items/f.png');
+   this.load.image('g', 'phaser/cards/items/g.png');
+   this.load.image('h', 'phaser/cards/items/h.png');
+
 }
 
 function create ()
 {
     
     self = this;
-    this.cameras.main.setBounds(0, 0, 1000, 600);
-    this.cameras.main.setZoom(0.5);
+    /*
+    this.cameras.main.setBounds(0, 0, 1280, 720);
+    this.cameras.main.setZoom(1);
     this.cameras.main.centerOn(0, 0);
+    */
+   const w = window.innerWidth;
+   const h = window.innerHeight;
 
+   const pw = 1920;
+   const ph = 1080;
+   const s = pw / ph > w / h ? true : false;
+
+   const zoomRatio = s ? w / pw : h / ph;
+   const scrollX = -1 * (w - pw) / 2
+   const scrollY = -1 * (h - ph) / 2
+   this.cameras.main.scrollX = scrollX;
+   this.cameras.main.scrollY = scrollY;
+   this.cameras.main.setZoom(zoomRatio);
     
-
+   this.add.image(0, 0, 'test').setOrigin(0,0).setDisplaySize(1920, 1080).setAlpha(0.3);
     //buildLevel(this, pairsOnLevel += onNextLevel);
-    buildLevel(this, 4);
+    buildLevel(this, pairsOnLevel);
     
     
     
@@ -85,10 +124,25 @@ const buildLevel = (self, pairsNum) => {
     
     self.allcards = self.add.group(); 
     const randomCards = randomDuplicates(all, pairsNum);
+
+    let corrX = 490;
+    let corrY = 430;
+    
+    if(pairsOnLevel == 4){
+        corrX = 490, corrY = 310;
+    }
+
+    if(pairsOnLevel == 6){
+        corrX = 490, corrY = 186;
+    }
+
+    if(pairsOnLevel == 8){
+        corrX = 490, corrY = 70;
+    }
     
     randomCards.map( (item, index) => {
-        let onX = coords[index].x+333;
-        let onY = coords[index].y+80;
+        let onX = coords[index].x+corrX;
+        let onY = coords[index].y+corrY;
         
         let back = self.add.image(Phaser.Math.Between(-2500, 2500), Phaser.Math.Between(-2500, 2500), 'back').setInteractive();
         let front = self.add.image(Phaser.Math.Between(-2500, 2500), Phaser.Math.Between(-2500, 2500), item);
@@ -204,14 +258,23 @@ const clearLevel = (self) => {
     //setTimeout( () => { buildLevel(self, pairsOnLevel += onNextLevel) }, 2000 );
 }
 
+const randText = () => {
+    const textVars = [
+        {text:'Amazing', x:480, font:'Coiny'},
+        {text:'Wonderful', x:430, font: 'Russo One'},
+    ];
+    return textVars[Math.floor(Math.random()*textVars.length)];
+}
+
 
 
 const endMoves = (self) => {
     console.log('end moves');
+    const modText = randText();
     setTimeout( () => {
-        let endtext = self.add.text(400, 310, "Amazing!", { fontFamily: "Coiny", fontSize: 174, color: "#c51b7d" });
-        endtext.setStroke('#de77ae', 16);
-        endtext.setShadow(2, 2, "#333333", 2, true, true);
+        let endtext = self.add.text( modText.x, 370, modText.text, { fontFamily: modText.font, fontSize: 174, color: "#f45c19" });
+        endtext.setStroke('#e7946f', 36);
+        endtext.setShadow(4, 4, "#333333", 4, true, true);
         endtext.alpha = 0;
 
         
@@ -251,7 +314,7 @@ const endMoves = (self) => {
         setTimeout( () => {
             endtext.destroy();
             //buildLevel(self, pairsOnLevel += onNextLevel);
-            buildLevel(self, 4);
+            buildLevel(self, pairsOnLevel);
         },2200);
         
     }, 520);
